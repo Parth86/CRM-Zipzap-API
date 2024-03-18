@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\Role;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Http\Resources\UserResource;
+use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthenticatedSessionController extends Controller
 {
-    public Role $role;
+    private Role $role;
+
+    private User|Customer $user;
+
     /**
      * Handle an incoming authentication request.
      */
@@ -22,16 +26,18 @@ class AuthenticatedSessionController extends Controller
 
         // $request->session()->regenerate();
 
-        $role = request()->role;
+        $this->role = request()->role;
 
-        $user = auth()->guard($role->loginGuard())->user();
+        $this->user = auth()->guard($this->role->loginGuard())->user();
 
+        $token = $this->user->createToken('token')->plainTextToken;
 
         return $this->response(
             data: [
-                'user' => $role->toResource($user)
+                'user' => $this->role->toResource($this->user),
+                'token' => $token
             ],
-            message: "Login Successful"
+            message: 'Login Successful'
         );
     }
 
@@ -48,7 +54,7 @@ class AuthenticatedSessionController extends Controller
 
         return $this->response(
             data: [],
-            message: "User Deleted"
+            message: 'User Deleted'
         );
     }
 }

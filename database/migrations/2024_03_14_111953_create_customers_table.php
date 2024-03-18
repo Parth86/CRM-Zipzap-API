@@ -16,10 +16,10 @@ return new class extends Migration
             $table->uuid('uuid')->index();
             $table->string('name');
             $table->string('phone')->unique();
-            $table->string("email")->nullable()->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('password');
-            $table->string("alert_phone")->nullable();
-            $table->text("address")->nullable();
+            $table->string('alert_phone')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }

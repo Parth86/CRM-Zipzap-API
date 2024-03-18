@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\Complaint;
 
 /**
  * @mixin Complaint
@@ -22,7 +22,7 @@ class ComplaintResource extends JsonResource
             'comments' => $this->comments,
             'product' => $this->product,
             'id' => $this->uuid,
-            'photo' => $this->whenLoaded('media', $this->media->first()?->original_url)
+            'photo' => $this->whenLoaded('media', $this->media->first()?->original_url),
         ];
     }
 }

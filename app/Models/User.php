@@ -11,17 +11,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property string $original_password
  */
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasUuid, GeneratePassword;
+    use GeneratePassword, HasFactory, HasUuid, Notifiable, HasApiTokens;
 
     protected $guarded = ['id'];
-
-
 
     /**
      * The attributes that should be hidden for serialization.
@@ -32,6 +31,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -39,9 +39,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'password' => 'hashed',
-        'role' => UserRole::class
+        'role' => UserRole::class,
     ];
-
 
     public function scopeIsAdmin(Builder $query): Builder
     {

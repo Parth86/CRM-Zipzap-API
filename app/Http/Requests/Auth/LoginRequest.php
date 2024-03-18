@@ -32,7 +32,7 @@ class LoginRequest extends FormRequest
         return [
             'phone' => ['required', new ValidPhone],
             'password' => ['required', 'string'],
-            'role' => [Rule::enum(Role::class)]
+            'role' => [Rule::enum(Role::class)],
         ];
     }
 

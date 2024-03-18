@@ -24,10 +24,10 @@ class StoreComplaintRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id' => ['required', 'exists:' . Customer::class . ',uuid'],
+            'customer_id' => ['required', 'exists:'.Customer::class.',uuid'],
             'product' => ['required', 'string'],
             'comments' => ['required', 'string'],
-            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(6000)]
+            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(6000)],
         ];
     }
 }

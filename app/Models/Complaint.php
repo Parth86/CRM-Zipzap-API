@@ -7,12 +7,16 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @property string $original_url
+ */
 class Complaint extends Model implements HasMedia
 {
-    use HasFactory, InteractsWithMedia, HasUuid;
+    use HasFactory, HasUuid, InteractsWithMedia;
 
     protected $guarded = ['id'];
 
@@ -22,9 +26,8 @@ class Complaint extends Model implements HasMedia
      * @return array<string, string>
      */
     protected $casts = [
-        'status' => ComplaintStatus::class
+        'status' => ComplaintStatus::class,
     ];
-
 
     public function customer(): BelongsTo
     {
@@ -34,5 +37,10 @@ class Complaint extends Model implements HasMedia
     public function employee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employee_id');
+    }
+
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(ComplaintStatusChange::class);
     }
 }

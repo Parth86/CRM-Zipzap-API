@@ -14,7 +14,7 @@ class EmployeeController extends Controller
 
         return $this->response(
             data: [
-                'employees' => EmployeeIndexResource::collection($employees)
+                'employees' => EmployeeIndexResource::collection($employees),
             ],
             message: 'List of Employees'
         );

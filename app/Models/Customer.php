@@ -7,13 +7,14 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * @property string $original_password
  */
 class Customer extends Authenticatable
 {
-    use HasFactory, HasUuid, GeneratePassword;
+    use GeneratePassword, HasFactory, HasUuid, HasApiTokens;
 
     protected $guarded = ['id'];
 
@@ -25,7 +26,7 @@ class Customer extends Authenticatable
     protected function casts(): array
     {
         return [
-            'password' => 'hashed'
+            'password' => 'hashed',
         ];
     }
 

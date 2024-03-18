@@ -18,7 +18,7 @@ class ValidPhone implements ValidationRule
 
         $MAX_PHONE = 9_999_999_999;
 
-        if (!is_numeric($value) or  $value < $MIN_PHONE or $value > $MAX_PHONE) {
+        if (! is_numeric($value) or $value < $MIN_PHONE or $value > $MAX_PHONE) {
             $fail('The :attribute must be a valid phone number.');
         }
     }

@@ -10,7 +10,6 @@ use App\Rules\ValidPhone;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-
 class RegisteredUserController extends Controller
 {
     /**
@@ -23,20 +22,20 @@ class RegisteredUserController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'nullable', new ValidPhone, 'unique:' . User::class],
+            'phone' => ['required', 'nullable', new ValidPhone, 'unique:'.User::class],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
-            'role' => UserRole::EMPLOYEE
+            'role' => UserRole::EMPLOYEE,
         ]);
 
         return $this->response(
             data: [
-                'user' => UserResource::make($user)
+                'user' => UserResource::make($user),
             ],
-            message: "New Employee Created",
+            message: 'New Employee Created',
         );
     }
 }
