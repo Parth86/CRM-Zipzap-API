@@ -24,7 +24,7 @@ class ComplaintIndexResource extends JsonResource
             'comments' => $this->comments,
             'created_at' => $this->created_at->format('h:i:s A d-m-Y'),
             'status' => $this->status->label(),
-            'photo' => $this->whenLoaded('media', $this->media->first()?->original_url),
+            'photo' => $this->whenLoaded('media', $this->media->first()?->getUrl()),
             'customer' => CustomerResource::make($this->whenLoaded('customer')),
             'employee' => EmployeeResource::make($this->whenLoaded('employee'))
         ];

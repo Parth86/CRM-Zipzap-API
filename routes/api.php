@@ -17,7 +17,6 @@ Route::get('roles', [RoleController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/employees', [RegisteredUserController::class, 'store'])
-        ->middleware('guest')
         ->name('register');
 
     Route::post('customers', [CustomerController::class, 'create']);
