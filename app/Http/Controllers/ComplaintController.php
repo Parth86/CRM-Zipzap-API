@@ -11,6 +11,7 @@ use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -47,7 +48,9 @@ class ComplaintController extends Controller
         ]);
         $complaints = Complaint::query()
             ->with('media')
-            ->with('statusChanges')
+            ->with([
+                'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at')
+            ])
             ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id'])
             ->when(
                 $request->has('employee_id'),
@@ -61,7 +64,7 @@ class ComplaintController extends Controller
             ->when($request->has('employee_id'), fn (Builder $query) => $query->with('customer:id,uuid,name'))
             ->when(
                 !$request->has('customer_id') and !$request->has('employee_id'),
-                fn (Builder $query) => $query->with('customer:id,uuid,name')->with('customer:id,uuid,name')
+                fn (Builder $query) => $query->with('customer:id,uuid,name')->with('employee:id,uuid,name')
             )
             ->latest()
             ->get();

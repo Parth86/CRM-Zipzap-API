@@ -9,9 +9,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * @property string $original_password
- */
 class Customer extends Authenticatable
 {
     use GeneratePassword, HasFactory, HasUuid, HasApiTokens;
@@ -33,5 +30,10 @@ class Customer extends Authenticatable
     public function complaints(): HasMany
     {
         return $this->hasMany(Complaint::class);
+    }
+
+    public function queries(): HasMany
+    {
+        return $this->hasMany(Query::class);
     }
 }

@@ -11,9 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-/**
- * @property string $original_url
- */
 class Complaint extends Model implements HasMedia
 {
     use HasFactory, HasUuid, InteractsWithMedia;
