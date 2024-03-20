@@ -24,4 +24,9 @@ class ComplaintStatusChange extends Model
     {
         return $this->belongsTo(Complaint::class);
     }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'employee_id');
+    }
 }

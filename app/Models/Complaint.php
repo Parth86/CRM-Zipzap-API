@@ -43,4 +43,14 @@ class Complaint extends Model implements HasMedia
     {
         return $this->hasMany(ComplaintStatusChange::class);
     }
+
+    public function isAllocatedToEmployee(): bool
+    {
+        return is_null($this->employee_id);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status->isPending();
+    }
 }

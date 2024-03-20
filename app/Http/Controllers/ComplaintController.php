@@ -47,6 +47,7 @@ class ComplaintController extends Controller
         ]);
         $complaints = Complaint::query()
             ->with('media')
+            ->with('statusChanges')
             ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id'])
             ->when(
                 $request->has('employee_id'),
@@ -82,14 +83,32 @@ class ComplaintController extends Controller
             'comments' => ['sometimes', 'nullable', 'string'],
         ]);
 
+        if ($complaint->status->isClosed()) {
+            return $this->response(
+                data: [],
+                message: 'Complaint is Closed so cannot be allocated to an employee',
+                status: false,
+                code: 400
+            );
+        }
+
+        if ($complaint->isPending()) {
+            $complaintStatus = ComplaintStatus::ALLOCATED;
+        } else {
+            $complaintStatus = ComplaintStatus::REALLOCATED;
+        }
+
+        $employeeId = User::findIdByUuid($request->employee_id);
+
         $complaint->update([
-            'employee_id' => User::findIdByUuid($request->employee_id),
+            'employee_id' => $employeeId,
             'admin_comments' => $request->comments,
-            'status' => ComplaintStatus::ALLOCATED,
+            'status' => $complaintStatus,
         ]);
 
         $complaint->statusChanges()->create([
-            'status' => ComplaintStatus::ALLOCATED,
+            'status' => $complaintStatus,
+            'employee_id' => $employeeId,
             'created_at' => now()
         ]);
 
@@ -115,6 +134,7 @@ class ComplaintController extends Controller
 
         $complaint->statusChanges()->create([
             'status' => $status,
+            'employee_id' => $complaint->employee_id,
             'created_at' => now()
         ]);
 

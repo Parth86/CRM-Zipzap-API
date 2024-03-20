@@ -8,6 +8,7 @@ enum ComplaintStatus: int
     case ALLOCATED = 2;
     case CLOSED = 3;
     case REOPENED = 4;
+    case REALLOCATED = 5;
 
     public function label(): string
     {
@@ -20,7 +21,18 @@ enum ComplaintStatus: int
             'PENDING' => self::PENDING,
             'ALLOCATED' => self::ALLOCATED,
             'CLOSED' => self::CLOSED,
-            'REOPENED' => self::REOPENED
+            'REOPENED' => self::REOPENED,
+            'REALLOCATED' => self::REALLOCATED
         };
+    }
+
+    public function isClosed(): bool
+    {
+        return $this === self::CLOSED;
+    }
+
+    public function isPending(): bool
+    {
+        return $this === self::PENDING;
     }
 }
