@@ -4,11 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Enums\UserRole;
+use App\Http\Requests\AddQueryCommentsRequest;
 use App\Http\Requests\StoreQueryRequest;
+use App\Http\Resources\QueryCommentResource;
 use App\Http\Resources\QueryResource;
 use App\Models\Customer;
 use App\Models\Query;
+use App\Models\QueryComment;
+use Auth;
 use DB;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
@@ -28,10 +33,14 @@ class QueryController extends Controller
                 'product' => $request->validated('product'),
             ]);
 
-            $query->comments()->create([
+            $comment = $query->comments()->create([
                 'comments' => $request->validated('comments'),
                 'by_customer' => true
             ]);
+
+            if ($request->has('photo')) {
+                $comment->addMedia($request->photo)->toMediaCollection();
+            }
         });
 
 
@@ -69,27 +78,33 @@ class QueryController extends Controller
         );
     }
 
-    public function addComments(Request $request, Query $query): JsonResponse
+    public function addComments(AddQueryCommentsRequest $request, Query $query, QueryComment $comment = null): JsonResponse
     {
-        $request->validate([
-            'comments' => ['required', 'string']
-        ]);
 
-        if (request()->user()->role == Role::ADMIN) {
-            $query->adminComments()->create([
-                'comments' => $request->comments,
-                'by_customer' => true
-            ]);
-        } else if (request()->user()->role == Role::CUSTOMER) {
-            $query->customerComments()->create([
-                'comments' => $request->comments,
+        $user = auth()->user();
+
+        if ($user->role and $user->role == UserRole::ADMIN) {
+            $comment = $query->comments()->create([
+                'comments' => $request->validated('comments'),
                 'by_customer' => false
             ]);
+        } else if (!$user->role) {
+            $comment = $query->comments()->create([
+                'comments' => $request->validated('comments'),
+                'by_customer' => true
+            ]);
+        } else {
+            throw new Exception("Auth Failed");
+        }
+
+        if ($request->has('photo')) {
+            $comment->addMedia($request->photo)->toMediaCollection();
         }
 
         return $this->response(
             data: [
                 'query' => $query,
+                'comment' => $comment
             ],
             message: 'New Query Comments Added'
         );
@@ -97,12 +112,12 @@ class QueryController extends Controller
 
     public function view(Query $query): JsonResponse
     {
-        $comments = $query->comments;
+        $comments = $query->comments()->with('media')->get();
 
         return $this->response(
             data: [
                 'query' => QueryResource::make($query),
-                'comments' => $comments,
+                'comments' => QueryCommentResource::collection($comments),
             ],
             message: 'Query Comments'
         );

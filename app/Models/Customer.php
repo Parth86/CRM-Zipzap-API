@@ -15,6 +15,8 @@ class Customer extends Authenticatable
 
     protected $guarded = ['id'];
 
+    protected $guard = 'customers';
+
     /**
      * Get the attributes that should be cast.
      *

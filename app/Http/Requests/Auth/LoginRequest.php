@@ -41,7 +41,7 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function authenticate(): void
+    public function authenticate()
     {
         // $this->ensureIsNotRateLimited();
 
@@ -55,7 +55,9 @@ class LoginRequest extends FormRequest
             $data['role'] = $role->userRole();
         }
 
-        if (!Auth::guard($role->loginGuard())->attempt($data)) {
+        $loginAttempt = auth()->guard($role->loginGuard())->attempt($data);
+
+        if (!$loginAttempt) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

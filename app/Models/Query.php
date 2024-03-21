@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\QueryStatus;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,10 @@ class Query extends Model
     use HasFactory, HasUuid;
 
     protected $guarded = ['id'];
+
+    protected $casts = [
+        'status' => QueryStatus::class
+    ];
 
     public function customer(): BelongsTo
     {

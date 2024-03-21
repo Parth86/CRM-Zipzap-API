@@ -17,8 +17,16 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
 Route::get('roles', [RoleController::class, 'index']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/user', function () {
+        return auth()->user();
+    });
+
     Route::post('/employees', [RegisteredUserController::class, 'store'])
         ->name('register');
+
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->middleware('auth')
+        ->name('logout');
 
     Route::post('customers', [CustomerController::class, 'create']);
     Route::get('customers', [CustomerController::class, 'index']);
