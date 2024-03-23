@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+/**
+ * @method string getUrl()
+ */
 class Complaint extends Model implements HasMedia
 {
     use HasFactory, HasUuid, InteractsWithMedia;
@@ -25,17 +28,23 @@ class Complaint extends Model implements HasMedia
     protected $casts = [
         'status' => ComplaintStatus::class,
     ];
-
+    /**
+     * @return BelongsTo<Customer,Complaint>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
-
+    /**
+     * @return BelongsTo<User,Complaint>
+     */
     public function employee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employee_id');
     }
-
+    /**
+     * @return HasMany<ComplaintStatusChange>
+     */
     public function statusChanges(): HasMany
     {
         return $this->hasMany(ComplaintStatusChange::class);

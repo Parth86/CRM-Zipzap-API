@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Query;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\File;
 
 /**
@@ -30,7 +30,7 @@ class StoreQueryRequest extends FormRequest
             // 'customer_id' => ['required', 'exists:' . Customer::class . ',uuid'],
             'product' => ['required', 'string'],
             'comments' => ['required', 'string'],
-            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(6000)],
+            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
         ];
     }
 }

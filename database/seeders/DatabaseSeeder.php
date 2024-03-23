@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin',
             'phone' => '1234567890',
             'role' => UserRole::ADMIN,
-            'password' => Hash::make('12345')
+            'password' => Hash::make('12345'),
         ]);
     }
 }

@@ -7,7 +7,6 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QueryController;
 use App\Http\Controllers\RoleController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
@@ -42,6 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('queries', [QueryController::class, 'index']);
     Route::get('queries/{query}', [QueryController::class, 'view']);
     Route::put('queries/{query}', [QueryController::class, 'addComments']);
+    Route::patch('queries/{query}', [QueryController::class, 'completeQuery']);
 
-    require __DIR__ . '/auth.php';
+    require __DIR__.'/auth.php';
 });

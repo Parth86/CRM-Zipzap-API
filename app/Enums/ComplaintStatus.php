@@ -15,14 +15,15 @@ enum ComplaintStatus: int
         return $this->name;
     }
 
-    public static function createFromName(string $name): self
+    public static function createFromName(string $name): ?self
     {
         return match ($name) {
             'PENDING' => self::PENDING,
             'ALLOCATED' => self::ALLOCATED,
             'CLOSED' => self::CLOSED,
             'REOPENED' => self::REOPENED,
-            'REALLOCATED' => self::REALLOCATED
+            'REALLOCATED' => self::REALLOCATED,
+            default => null
         };
     }
 

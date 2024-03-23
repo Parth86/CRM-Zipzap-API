@@ -20,7 +20,7 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->uuid,
-            'password' => $this->when($this->original_password, $this->original_password),
+            'password' => $this->when(boolval($this->original_password), $this->original_password),
             'phone' => $this->phone,
             'name' => $this->name,
             'role' => $this->role->label(),

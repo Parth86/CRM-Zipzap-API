@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Models\ComplaintStatusChange;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Models\ComplaintStatusChange;
 
 /**
  * @mixin ComplaintStatusChange
@@ -21,7 +21,7 @@ class ComplaintStatusChangeResource extends JsonResource
         return [
             'status' => $this->status->name,
             'time' => $this->created_at->format('h:i:s A d-m-y'),
-            'employee' => UserResource::make($this->whenLoaded('employee'))
+            'employee' => UserResource::make($this->whenLoaded('employee')),
         ];
     }
 }

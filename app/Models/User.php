@@ -18,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use GeneratePassword, HasFactory, HasUuid, Notifiable, HasApiTokens;
+    use GeneratePassword, HasApiTokens, HasFactory, HasUuid, Notifiable;
 
     protected $guarded = ['id'];
 
@@ -41,12 +41,22 @@ class User extends Authenticatable
         'password' => 'hashed',
         'role' => UserRole::class,
     ];
-
+    /**
+     * Scope a query to only include records with a given UUID.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
     public function scopeIsAdmin(Builder $query): Builder
     {
         return $query->where('role', UserRole::ADMIN);
     }
-
+    /**
+     * Scope a query to only include records with a given UUID.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<User>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
     public function scopeIsemployee(Builder $query): Builder
     {
         return $query->where('role', UserRole::EMPLOYEE);

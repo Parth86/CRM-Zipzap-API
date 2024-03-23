@@ -17,14 +17,19 @@ class ComplaintStatusChange extends Model
 
     protected $casts = [
         'created_at' => 'datetime',
-        'status' => ComplaintStatus::class
+        'status' => ComplaintStatus::class,
     ];
 
+    /**
+     * @return BelongsTo<Complaint,ComplaintStatusChange>
+     */
     public function complaint(): BelongsTo
     {
         return $this->belongsTo(Complaint::class);
     }
-
+    /**
+     * @return BelongsTo<User,ComplaintStatusChange>
+     */
     public function employee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'employee_id');

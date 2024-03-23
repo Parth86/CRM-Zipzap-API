@@ -10,6 +10,7 @@ use App\Http\Resources\ComplaintResource;
 use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\User;
+use Http;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
@@ -32,9 +33,30 @@ class ComplaintController extends Controller
             $complaint->addMedia($request->photo)->toMediaCollection();
         }
 
+        // $res =  Http::withHeaders([
+        //     'Authorization' => "Basic SlNhWjRDcFp2dlNnM3NhcHYwdDlmRWQteWd6VnNhV04xMjBHOUFtaFRrZzo=",
+        //     "Content-Type" => "application/json"
+        // ])
+        //     ->post('https://api.interakt.ai/v1/public/message/', [
+        //         "fullPhoneNumber" =>  "917986771957",
+        //         "callbackData" => "some text here",
+        //         "type" =>  "Template",
+        //         "template" =>  [
+        //             "name" =>  "crm_new_complaint_or_query_created",
+        //             "languageCode" => "en",
+        //             "bodyValues" => [
+        //                 "Complaint",
+        //                 "Pardeep Singh",
+        //                 "9115510154"
+        //             ]
+        //         ]
+
+        //     ]);
+
         return $this->response(
             data: [
                 'complaint' => ComplaintResource::make($complaint->load('media')),
+                // 'api_response' => $res->body()
             ],
             message: 'New Complaint Created'
         );
@@ -44,12 +66,12 @@ class ComplaintController extends Controller
     {
         $request->validate([
             'employee_id' => ['sometimes', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
-            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')]
+            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
         ]);
         $complaints = Complaint::query()
             ->with('media')
             ->with([
-                'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at')
+                'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at'),
             ])
             ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id'])
             ->when(
@@ -112,7 +134,7 @@ class ComplaintController extends Controller
         $complaint->statusChanges()->create([
             'status' => $complaintStatus,
             'employee_id' => $employeeId,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         return $this->response(
@@ -126,7 +148,7 @@ class ComplaintController extends Controller
     public function completeComplaint(Complaint $complaint, Request $request): JsonResponse
     {
         $request->validate([
-            'status' => ['required', Rule::in([ComplaintStatus::CLOSED->name, ComplaintStatus::REOPENED->name])]
+            'status' => ['required', Rule::in([ComplaintStatus::CLOSED->name, ComplaintStatus::REOPENED->name])],
         ]);
 
         $status = ComplaintStatus::createFromName($request->status);
@@ -138,7 +160,7 @@ class ComplaintController extends Controller
         $complaint->statusChanges()->create([
             'status' => $status,
             'employee_id' => $complaint->employee_id,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         return $this->response(

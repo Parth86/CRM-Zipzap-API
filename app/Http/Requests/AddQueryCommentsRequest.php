@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\QueryComment;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\File;
-use App\Models\QueryComment;
 
 /**
  * @mixin QueryComment
@@ -28,7 +28,7 @@ class AddQueryCommentsRequest extends FormRequest
     {
         return [
             'comments' => ['required', 'string'],
-            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(6000)],
+            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
         ];
     }
 }

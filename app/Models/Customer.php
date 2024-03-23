@@ -9,13 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @property string $original_password
+ */
 class Customer extends Authenticatable
 {
-    use GeneratePassword, HasFactory, HasUuid, HasApiTokens;
+    use GeneratePassword, HasApiTokens, HasFactory, HasUuid;
 
     protected $guarded = ['id'];
 
-    protected $guard = 'customers';
+    protected string $guard = 'customers';
 
     /**
      * Get the attributes that should be cast.
@@ -29,11 +32,16 @@ class Customer extends Authenticatable
         ];
     }
 
+    /**
+     * @return HasMany<Complaint>
+     */
     public function complaints(): HasMany
     {
         return $this->hasMany(Complaint::class);
     }
-
+    /**
+     * @return HasMany<Query>
+     */
     public function queries(): HasMany
     {
         return $this->hasMany(Query::class);

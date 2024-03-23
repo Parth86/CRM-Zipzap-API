@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 trait GeneratePassword
 {
-    public static function bootGeneratePassword()
+    public static function bootGeneratePassword(): void
     {
         $password = Str::random(10);
 

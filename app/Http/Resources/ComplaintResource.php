@@ -22,7 +22,7 @@ class ComplaintResource extends JsonResource
             'comments' => $this->comments,
             'product' => $this->product,
             'id' => $this->uuid,
-            'photo' => $this->whenLoaded('media', $this->media->first()?->original_url),
+            'photo' => $this->whenLoaded('media', $this->media->first()?->getUrl()),
         ];
     }
 }

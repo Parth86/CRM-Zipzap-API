@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Role;
+use App\Enums\QueryStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\AddQueryCommentsRequest;
 use App\Http\Requests\StoreQueryRequest;
@@ -11,23 +11,26 @@ use App\Http\Resources\QueryResource;
 use App\Models\Customer;
 use App\Models\Query;
 use App\Models\QueryComment;
-use Auth;
+use App\Models\User;
 use DB;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class QueryController extends Controller
 {
-    public function create(StoreQueryRequest $request, Query $query = null): JsonResponse
+    public function create(StoreQueryRequest $request, ?Query $query = null): JsonResponse
     {
 
         DB::transaction(function () use ($request, &$query) {
 
             $customer = $request->user();
+
+            if (!$customer instanceof Customer) {
+                throw new Exception("Auth Failed");
+            }
 
             $query = $customer->queries()->create([
                 'product' => $request->validated('product'),
@@ -35,7 +38,7 @@ class QueryController extends Controller
 
             $comment = $query->comments()->create([
                 'comments' => $request->validated('comments'),
-                'by_customer' => true
+                'by_customer' => true,
             ]);
 
             if ($request->has('photo')) {
@@ -43,6 +46,14 @@ class QueryController extends Controller
             }
         });
 
+        if (!$query) {
+            return $this->response(
+                data: [],
+                message: 'New Query Failed',
+                status: false,
+                code: 400
+            );
+        }
 
         return $this->response(
             data: [
@@ -55,10 +66,10 @@ class QueryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')]
+            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
         ]);
         $queries = Query::query()
-            ->select(['id', 'uuid', 'product', 'created_at', 'customer_id'])
+            ->select(['id', 'uuid', 'product', 'created_at', 'customer_id', 'status'])
             ->when(
                 $request->has('customer_id'),
                 fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($request->customer_id))
@@ -78,23 +89,27 @@ class QueryController extends Controller
         );
     }
 
-    public function addComments(AddQueryCommentsRequest $request, Query $query, QueryComment $comment = null): JsonResponse
+    public function addComments(AddQueryCommentsRequest $request, Query $query, ?QueryComment $comment = null): JsonResponse
     {
 
         $user = auth()->user();
 
-        if ($user->role and $user->role == UserRole::ADMIN) {
+        if ($query->isClosed()) {
+            throw new Exception('Query is Closed');
+        }
+
+        if ($user instanceof User and $user->role == UserRole::ADMIN) {
             $comment = $query->comments()->create([
                 'comments' => $request->validated('comments'),
-                'by_customer' => false
+                'by_customer' => false,
             ]);
-        } else if (!$user->role) {
+        } elseif ($user instanceof Customer) {
             $comment = $query->comments()->create([
                 'comments' => $request->validated('comments'),
-                'by_customer' => true
+                'by_customer' => true,
             ]);
         } else {
-            throw new Exception("Auth Failed");
+            throw new Exception('Auth Failed');
         }
 
         if ($request->has('photo')) {
@@ -104,7 +119,7 @@ class QueryController extends Controller
         return $this->response(
             data: [
                 'query' => $query,
-                'comment' => $comment
+                'comment' => $comment,
             ],
             message: 'New Query Comments Added'
         );
@@ -112,12 +127,31 @@ class QueryController extends Controller
 
     public function view(Query $query): JsonResponse
     {
-        $comments = $query->comments()->with('media')->get();
+        $comments = $query->comments()->with('media')->latest()->get();
 
         return $this->response(
             data: [
                 'query' => QueryResource::make($query),
                 'comments' => QueryCommentResource::collection($comments),
+            ],
+            message: 'Query Comments'
+        );
+    }
+
+    public function completeQuery(Query $query): JsonResponse
+    {
+        $query->update([
+            'status' => QueryStatus::CLOSED,
+        ]);
+
+        $query->comments()->create([
+            'comments' => 'CLOSED By Admin',
+            'by_customer' => false,
+        ]);
+
+        return $this->response(
+            data: [
+                'query' => QueryResource::make($query->refresh()),
             ],
             message: 'Query Comments'
         );

@@ -6,6 +6,7 @@ use App\Http\Resources\CustomerResource;
 use App\Http\Resources\UserResource;
 use App\Models\Customer;
 use App\Models\User;
+use phpDocumentor\Reflection\Types\Resource_;
 
 enum Role: string
 {
@@ -31,7 +32,7 @@ enum Role: string
         };
     }
 
-    public function toResource(User|Customer $user)
+    public function toResource(User|Customer $user): UserResource|CustomerResource
     {
         return match ($this) {
             self::ADMIN => UserResource::make($user),

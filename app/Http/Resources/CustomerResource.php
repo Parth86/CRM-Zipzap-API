@@ -23,7 +23,7 @@ class CustomerResource extends JsonResource
             'id' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
-            'password' => $this->when($this->original_password, $this->original_password),
+            'password' => $this->when(boolval($this->original_password), $this->original_password),
             'address' => $this->address,
             'phone' => $this->phone,
             'alert_phone' => $this->alert_phone,

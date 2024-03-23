@@ -35,7 +35,7 @@ class AuthenticatedSessionController extends Controller
         return $this->response(
             data: [
                 'user' => $this->role->toResource($this->user),
-                'token' => $token
+                'token' => $token,
             ],
             message: 'Login Successful'
         );

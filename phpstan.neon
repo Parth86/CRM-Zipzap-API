@@ -7,10 +7,12 @@ parameters:
         - app/
 
     # Level 9 is the highest level
-    level: 2
+    level: 8
 
-#    ignoreErrors:
-#        - '#PHPDoc tag @var#'
+    ignoreErrors:
+        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::getUrl\(\)#'
+        - '#Call to an undefined method object::getEmailForPasswordReset\(\).#'
+
 #
 #    excludePaths:
 #        - ./*/*/FileToBeExcluded.php

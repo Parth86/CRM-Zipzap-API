@@ -16,24 +16,38 @@ class Query extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
-        'status' => QueryStatus::class
+        'status' => QueryStatus::class,
     ];
 
+    public function isClosed(): bool
+    {
+        return $this->status->isClosed();
+    }
+    /**
+     * @return BelongsTo<Customer,Query>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
-
+    /**
+     * @return HasMany<QueryComment>
+     */
     public function comments(): HasMany
     {
         return $this->hasMany(QueryComment::class);
     }
-
+    /**
+     * @return HasMany<QueryComment>
+     */
     public function customerComments(): HasMany
     {
         return $this->hasMany(QueryComment::class)->where('by_customer', true);
     }
 
+    /**
+     * @return HasMany<QueryComment>
+     */
     public function adminComments(): HasMany
     {
         return $this->hasMany(QueryComment::class)->where('by_customer', false);

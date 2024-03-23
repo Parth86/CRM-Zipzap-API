@@ -16,16 +16,17 @@ class VerifyEmailController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             return redirect()->intended(
-                config('app.frontend_url').'/dashboard?verified=1'
+                config('app.frontend_url') . '/dashboard?verified=1'
             );
         }
 
         if ($request->user()->markEmailAsVerified()) {
+            // @phpstan-ignore-next-line
             event(new Verified($request->user()));
         }
 
         return redirect()->intended(
-            config('app.frontend_url').'/dashboard?verified=1'
+            config('app.frontend_url') . '/dashboard?verified=1'
         );
     }
 }
