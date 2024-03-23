@@ -8,10 +8,12 @@ use App\Http\Requests\AddQueryCommentsRequest;
 use App\Http\Requests\StoreQueryRequest;
 use App\Http\Resources\QueryCommentResource;
 use App\Http\Resources\QueryResource;
+use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\Query;
 use App\Models\QueryComment;
 use App\Models\User;
+use App\Services\InteraktService;
 use DB;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,10 +23,18 @@ use Illuminate\Validation\Rule;
 
 class QueryController extends Controller
 {
-    public function create(StoreQueryRequest $request, ?Query $query = null): JsonResponse
-    {
 
-        DB::transaction(function () use ($request, &$query) {
+    public function __construct(
+        private InteraktService $service
+    ) {
+    }
+    public function create(
+        StoreQueryRequest $request,
+        ?Query $query = null,
+        ?Customer $customer = null,
+    ): JsonResponse {
+
+        DB::transaction(function () use ($request, &$query, &$customer) {
 
             $customer = $request->user();
 
@@ -55,9 +65,18 @@ class QueryController extends Controller
             );
         }
 
+        $res_admin = $this->service->sendNewqueryCreatedMessageToAdmin($customer, $query);
+
+        $res_customer = $this->service->sendNewQueryCreatedMessageToCustomer($query, $customer);
+
+
         return $this->response(
             data: [
                 'query' => $query->load('comments'),
+                'api_response' => [
+                    'admin' => $res_admin->body(),
+                    'customer' => $res_customer->body()
+                ]
             ],
             message: 'New Query Created'
         );

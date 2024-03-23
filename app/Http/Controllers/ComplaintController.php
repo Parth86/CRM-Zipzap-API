@@ -10,6 +10,7 @@ use App\Http\Resources\ComplaintResource;
 use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\User;
+use App\Services\InteraktService;
 use Http;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +20,10 @@ use Illuminate\Validation\Rule;
 
 class ComplaintController extends Controller
 {
+    public function __construct(
+        private InteraktService $service
+    ) {
+    }
     public function create(StoreComplaintRequest $request): JsonResponse
     {
         $customer = Customer::findByUuid($request->customer_id);
@@ -33,30 +38,17 @@ class ComplaintController extends Controller
             $complaint->addMedia($request->photo)->toMediaCollection();
         }
 
-        // $res =  Http::withHeaders([
-        //     'Authorization' => "Basic SlNhWjRDcFp2dlNnM3NhcHYwdDlmRWQteWd6VnNhV04xMjBHOUFtaFRrZzo=",
-        //     "Content-Type" => "application/json"
-        // ])
-        //     ->post('https://api.interakt.ai/v1/public/message/', [
-        //         "fullPhoneNumber" =>  "917986771957",
-        //         "callbackData" => "some text here",
-        //         "type" =>  "Template",
-        //         "template" =>  [
-        //             "name" =>  "crm_new_complaint_or_query_created",
-        //             "languageCode" => "en",
-        //             "bodyValues" => [
-        //                 "Complaint",
-        //                 "Pardeep Singh",
-        //                 "9115510154"
-        //             ]
-        //         ]
+        // $res_admin = $this->service->sendNewComplaintCreatedMessageToAdmin($customer, $complaint);
 
-        //     ]);
+        $res_customer = $this->service->sendNewComplaintCreatedMessageToCustomer($complaint, $customer);
 
         return $this->response(
             data: [
                 'complaint' => ComplaintResource::make($complaint->load('media')),
-                // 'api_response' => $res->body()
+                'api_response' => [
+                    // 'admin' => $res_admin->body(),
+                    'customer' => $res_customer->body()
+                ]
             ],
             message: 'New Complaint Created'
         );
