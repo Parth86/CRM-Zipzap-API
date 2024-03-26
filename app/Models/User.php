@@ -41,6 +41,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'role' => UserRole::class,
     ];
+
     /**
      * Scope a query to only include records with a given UUID.
      *
@@ -51,6 +52,7 @@ class User extends Authenticatable
     {
         return $query->where('role', UserRole::ADMIN);
     }
+
     /**
      * Scope a query to only include records with a given UUID.
      *

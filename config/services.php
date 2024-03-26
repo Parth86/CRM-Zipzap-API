@@ -32,7 +32,7 @@ return [
     ],
 
     'interakt' => [
-        'api_key' => env('INTERAKT_API_KEY')
-    ]
+        'api_key' => env('INTERAKT_API_KEY'),
+    ],
 
 ];

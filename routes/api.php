@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QueryController;
 use App\Http\Controllers\RoleController;
@@ -20,12 +21,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return auth()->user();
     });
 
-    Route::post('/employees', [RegisteredUserController::class, 'store'])
-        ->name('register');
+    Route::get('dashboard', [DashboardController::class, 'index']);
 
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->middleware('auth')
-        ->name('logout');
+    Route::post('/employees', [RegisteredUserController::class, 'store']);
+
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy']);
 
     Route::post('customers', [CustomerController::class, 'create']);
     Route::get('customers', [CustomerController::class, 'index']);

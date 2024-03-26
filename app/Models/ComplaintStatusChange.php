@@ -27,6 +27,7 @@ class ComplaintStatusChange extends Model
     {
         return $this->belongsTo(Complaint::class);
     }
+
     /**
      * @return BelongsTo<User,ComplaintStatusChange>
      */

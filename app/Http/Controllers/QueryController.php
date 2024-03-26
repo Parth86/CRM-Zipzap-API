@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\CustomerDTO;
+use App\DTO\QueryDTO;
 use App\Enums\QueryStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\AddQueryCommentsRequest;
 use App\Http\Requests\StoreQueryRequest;
 use App\Http\Resources\QueryCommentResource;
 use App\Http\Resources\QueryResource;
-use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\Query;
 use App\Models\QueryComment;
@@ -23,24 +24,24 @@ use Illuminate\Validation\Rule;
 
 class QueryController extends Controller
 {
-
     public function __construct(
         private InteraktService $service
     ) {
     }
+
     public function create(
         StoreQueryRequest $request,
         ?Query $query = null,
         ?Customer $customer = null,
     ): JsonResponse {
 
-        DB::transaction(function () use ($request, &$query, &$customer) {
+        $customer = $request->user();
 
-            $customer = $request->user();
+        if (!$customer instanceof Customer) {
+            throw new Exception('Auth Failed');
+        }
 
-            if (!$customer instanceof Customer) {
-                throw new Exception("Auth Failed");
-            }
+        DB::transaction(function () use ($request, &$query, $customer) {
 
             $query = $customer->queries()->create([
                 'product' => $request->validated('product'),
@@ -65,18 +66,23 @@ class QueryController extends Controller
             );
         }
 
-        $res_admin = $this->service->sendNewqueryCreatedMessageToAdmin($customer, $query);
+        $res_admin = $this->service->sendNewqueryCreatedMessageToAdmin(
+            CustomerDTO::fromModel($customer),
+            QueryDTO::fromModel($query)
+        );
 
-        $res_customer = $this->service->sendNewQueryCreatedMessageToCustomer($query, $customer);
-
+        $res_customer = $this->service->sendNewQueryCreatedMessageToCustomer(
+            QueryDTO::fromModel($query),
+            CustomerDTO::fromModel($customer)
+        );
 
         return $this->response(
             data: [
                 'query' => $query->load('comments'),
                 'api_response' => [
                     'admin' => $res_admin->body(),
-                    'customer' => $res_customer->body()
-                ]
+                    'customer' => $res_customer->body(),
+                ],
             ],
             message: 'New Query Created'
         );
@@ -168,9 +174,21 @@ class QueryController extends Controller
             'by_customer' => false,
         ]);
 
+        $res_admin = $this->service->sendQueryClosedMesageToAdmin(
+            QueryDTO::fromModel($query),
+            CustomerDTO::fromModel($query->customer)
+        );
+
+        $res_customer = $this->service->sendQueryClosedMesageToCustomer(
+            QueryDTO::fromModel($query),
+            CustomerDTO::fromModel($query->customer)
+        );
+
         return $this->response(
             data: [
                 'query' => QueryResource::make($query->refresh()),
+                'res_admin' => $res_admin->body(),
+                'res_customer' => $res_customer->body()
             ],
             message: 'Query Comments'
         );

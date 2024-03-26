@@ -10,9 +10,9 @@ trait HasUuid
     /**
      * Find a model instance by UUID.
      *
-     * @return ?self
+     * @return self
      */
-    public static function findByUuid(string $uuid): ?self
+    public static function findByUuid(string $uuid): self
     {
         return self::where('uuid', $uuid)->firstOrFail();
     }
@@ -33,10 +33,8 @@ trait HasUuid
      * Scope a query to only include records with a given UUID.
      *
      * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @param  string  $uuid
      * @return \Illuminate\Database\Eloquent\Builder<self>
      */
-
     public function scopeWhereUuid(Builder $query, string $uuid): Builder
     {
         return $query->where('uuid', $uuid);

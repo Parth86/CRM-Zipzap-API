@@ -39,6 +39,7 @@ class Customer extends Authenticatable
     {
         return $this->hasMany(Complaint::class);
     }
+
     /**
      * @return HasMany<Query>
      */

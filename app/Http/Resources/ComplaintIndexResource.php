@@ -30,7 +30,7 @@ class ComplaintIndexResource extends JsonResource
             'statusChanges' => ComplaintStatusChangeResource::collection($this->whenLoaded('statusChanges')),
         ];
 
-        if (!request()->has('customer_id')) {
+        if (! request()->has('customer_id')) {
             $response['admin_comments'] = $this->admin_comments;
         }
 

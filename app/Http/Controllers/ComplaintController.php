@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DTO\ComplaintDTO;
+use App\DTO\CustomerDTO;
 use App\Enums\ComplaintStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreComplaintRequest;
@@ -11,7 +13,6 @@ use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\User;
 use App\Services\InteraktService;
-use Http;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,7 @@ class ComplaintController extends Controller
         private InteraktService $service
     ) {
     }
+
     public function create(StoreComplaintRequest $request): JsonResponse
     {
         $customer = Customer::findByUuid($request->customer_id);
@@ -38,17 +40,23 @@ class ComplaintController extends Controller
             $complaint->addMedia($request->photo)->toMediaCollection();
         }
 
-        // $res_admin = $this->service->sendNewComplaintCreatedMessageToAdmin($customer, $complaint);
+        $res_admin = $this->service->sendNewComplaintCreatedMessageToAdmin(
+            CustomerDTO::fromModel($customer),
+            ComplaintDTO::fromModel($complaint)
+        );
 
-        $res_customer = $this->service->sendNewComplaintCreatedMessageToCustomer($complaint, $customer);
+        $res_customer = $this->service->sendNewComplaintCreatedMessageToCustomer(
+            ComplaintDTO::fromModel($complaint),
+            CustomerDTO::fromModel($customer)
+        );
 
         return $this->response(
             data: [
                 'complaint' => ComplaintResource::make($complaint->load('media')),
                 'api_response' => [
-                    // 'admin' => $res_admin->body(),
-                    'customer' => $res_customer->body()
-                ]
+                    'admin' => $res_admin->body(),
+                    'customer' => $res_customer->body(),
+                ],
             ],
             message: 'New Complaint Created'
         );
@@ -155,9 +163,27 @@ class ComplaintController extends Controller
             'created_at' => now(),
         ]);
 
+        $res_admin = null;
+
+        $res_customer = null;
+
+        if ($status and $status->isClosed()) {
+            $res_admin = $this->service->sendComplaintClosedMesageToAdmin(
+                ComplaintDTO::fromModel($complaint),
+                CustomerDTO::fromModel($complaint->customer)
+            );
+
+            $res_customer = $this->service->sendComplaintClosedMesageToCustomer(
+                ComplaintDTO::fromModel($complaint),
+                CustomerDTO::fromModel($complaint->customer)
+            );
+        }
+
         return $this->response(
             data: [
                 'complaint' => ComplaintIndexResource::make($complaint->refresh()),
+                'res_admin' => $res_admin?->body(),
+                'res_customer' => $res_customer?->body()
             ],
             message: 'Complaint Completed'
         );

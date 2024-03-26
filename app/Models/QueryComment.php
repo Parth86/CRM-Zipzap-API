@@ -20,6 +20,7 @@ class QueryComment extends Model implements HasMedia
     protected $casts = [
         'by_customer' => 'boolean',
     ];
+
     /**
      * Define a relationship to the customer's query.
      *

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ComplaintStatus;
 use App\Traits\HasUuid;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +29,7 @@ class Complaint extends Model implements HasMedia
     protected $casts = [
         'status' => ComplaintStatus::class,
     ];
+
     /**
      * @return BelongsTo<Customer,Complaint>
      */
@@ -35,6 +37,7 @@ class Complaint extends Model implements HasMedia
     {
         return $this->belongsTo(Customer::class);
     }
+
     /**
      * @return BelongsTo<User,Complaint>
      */
@@ -42,6 +45,7 @@ class Complaint extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'employee_id');
     }
+
     /**
      * @return HasMany<ComplaintStatusChange>
      */
@@ -54,9 +58,26 @@ class Complaint extends Model implements HasMedia
     {
         return is_null($this->employee_id);
     }
-
     public function isPending(): bool
     {
         return $this->status->isPending();
+    }
+    /**
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Complaint>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Complaint>
+     */
+    public function scopePending(Builder $query): Builder
+    {
+        return $query->whereNot('status', ComplaintStatus::CLOSED);
+    }
+    /**
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<Complaint>  $query
+     * @return \Illuminate\Database\Eloquent\Builder<Complaint>
+     */
+    public function scopeClosed(Builder $query): Builder
+    {
+        return $query->where('status', ComplaintStatus::CLOSED);
     }
 }

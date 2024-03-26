@@ -50,13 +50,13 @@ class LoginRequest extends FormRequest
 
         $data = $this->only('phone', 'password');
 
-        if (!$role->isCustomer()) {
+        if (! $role->isCustomer()) {
             $data['role'] = $role->userRole();
         }
 
         $loginAttempt = auth()->guard($role->loginGuard())->attempt($data);
 
-        if (!$loginAttempt) {
+        if (! $loginAttempt) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -74,7 +74,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -95,6 +95,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->input('phone')) . '|' . $this->ip());
+        return Str::transliterate(Str::lower($this->input('phone')).'|'.$this->ip());
     }
 }
