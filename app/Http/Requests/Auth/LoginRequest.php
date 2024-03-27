@@ -4,6 +4,7 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\Role;
 use App\Rules\ValidPhone;
+use Exception;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\RateLimiter;
@@ -24,14 +25,14 @@ class LoginRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, Rule|array<Rule|string>|string>
+     * @return array<string, Rule|array<int, ValidPhone|Rule|string>|string>
      */
     public function rules(): array
     {
         return [
             'phone' => ['required', new ValidPhone],
             'password' => ['required', 'string'],
-            'role' => [Rule::enum(Role::class)],
+            'role' => ['string', Rule::enum(Role::class)],
         ];
     }
 
@@ -46,17 +47,21 @@ class LoginRequest extends FormRequest
 
         $role = Role::tryFrom($this->validated('role'));
 
+        // if (!$role) {
+        //     throw new Exception("Invalid Role");ß
+        // }
+
         request()->role = $role;
 
         $data = $this->only('phone', 'password');
 
-        if (! $role->isCustomer()) {
+        if (!$role->isCustomer()) {
             $data['role'] = $role->userRole();
         }
 
         $loginAttempt = auth()->guard($role->loginGuard())->attempt($data);
 
-        if (! $loginAttempt) {
+        if (!$loginAttempt) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -74,7 +79,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -95,6 +100,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->input('phone')).'|'.$this->ip());
+        return Str::transliterate(($this->input('phone')) . '|' . $this->ip());
     }
 }

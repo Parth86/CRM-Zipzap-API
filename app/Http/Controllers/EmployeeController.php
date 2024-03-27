@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\EmployeeIndexResource;
 use App\Models\User;
+use App\Services\InteraktService;
 use Illuminate\Http\JsonResponse;
 
 class EmployeeController extends Controller

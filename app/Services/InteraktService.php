@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\DTO\ComplaintDTO;
 use App\DTO\CustomerDTO;
+use App\DTO\EmployeeDTO;
 use App\DTO\QueryDTO;
-use App\Models\Customer;
 use Http;
 use Illuminate\Http\Client\Response;
 
@@ -21,7 +21,9 @@ class InteraktService
 
     public function __construct()
     {
-        $this->apiToken = config('services.interakt.api_key');
+        /** @var string $token */
+        $token = config('services.interakt.api_key');
+        $this->apiToken = $token;
     }
 
     /**
@@ -82,7 +84,7 @@ class InteraktService
         $buttonUrl = $this->websiteUrl . 'customerView';
 
         return $this->sendMessage(
-            phone: $customer->phone,
+            phone: $customer->alert_phone,
             endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
@@ -126,7 +128,7 @@ class InteraktService
         $buttonUrl = $this->websiteUrl . 'complaintsView';
 
         return $this->sendMessage(
-            phone: $customer->phone,
+            phone: $customer->alert_phone,
             endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
@@ -170,7 +172,7 @@ class InteraktService
         $buttonUrl = $this->websiteUrl . 'complaintsView';
 
         return $this->sendMessage(
-            phone: $customer->phone,
+            phone: $customer->alert_phone,
             endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
@@ -214,7 +216,7 @@ class InteraktService
         $buttonUrl = $this->websiteUrl . 'queryView';
 
         return $this->sendMessage(
-            phone: $customer->phone,
+            phone: $customer->alert_phone,
             endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
@@ -225,6 +227,40 @@ class InteraktService
                     $buttonUrl,
                 ],
             ]
+        );
+    }
+
+    public function sendNewAccountCreatedMessageToCustomer(CustomerDTO $customer)
+    {
+        $endpoint = $this->url . 'message/';
+        $templateName = 'crm_account_created_customer';
+
+        return $this->sendMessage(
+            phone: $customer->alert_phone,
+            endpoint: $endpoint,
+            templateName: $templateName,
+            bodyValues: [
+                $customer->phone,
+                $customer->password
+            ],
+            buttonValues: []
+        );
+    }
+
+    public function sendNewAccountCreatedMessageToEmployee(EmployeeDTO $employee)
+    {
+        $endpoint = $this->url . 'message/';
+        $templateName = 'crm_account_created_employee';
+
+        return $this->sendMessage(
+            phone: $employee->phone,
+            endpoint: $endpoint,
+            templateName: $templateName,
+            bodyValues: [
+                $employee->phone,
+                $employee->password
+            ],
+            buttonValues: []
         );
     }
 }

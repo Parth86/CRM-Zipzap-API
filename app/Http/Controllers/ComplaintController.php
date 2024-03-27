@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ComplaintController extends Controller
 {
@@ -26,9 +27,12 @@ class ComplaintController extends Controller
     ) {
     }
 
+
     public function create(StoreComplaintRequest $request): JsonResponse
     {
-        $customer = Customer::findByUuid($request->customer_id);
+        /** @var string $customerId */
+        $customerId = $request->validated('customer_id');
+        $customer = Customer::findByUuid($customerId);
 
         $complaint = $customer->complaints()->create([
             'comments' => $request->validated('comments'),
@@ -37,7 +41,9 @@ class ComplaintController extends Controller
         ]);
 
         if ($request->has('photo')) {
-            $complaint->addMedia($request->photo)->toMediaCollection();
+            /** @var UploadedFile $uploadedPhoto */
+            $uploadedPhoto = $request->validated('photo');
+            $complaint->addMedia($uploadedPhoto)->toMediaCollection();
         }
 
         $res_admin = $this->service->sendNewComplaintCreatedMessageToAdmin(
@@ -65,9 +71,16 @@ class ComplaintController extends Controller
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'employee_id' => ['sometimes', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
-            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
+            'employee_id' => ['sometimes', 'string', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
+            'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
         ]);
+
+        /** @var string $employeeId*/
+        $employeeId = $request->employee_id;
+
+        /** @var string $customerId*/
+        $customerId = $request->customer_id;
+
         $complaints = Complaint::query()
             ->with('media')
             ->with([
@@ -76,11 +89,11 @@ class ComplaintController extends Controller
             ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id'])
             ->when(
                 $request->has('employee_id'),
-                fn (Builder $query) => $query->where('employee_id', User::findIdByUuid($request->employee_id))
+                fn (Builder $query) => $query->where('employee_id', User::findIdByUuid($employeeId))
             )
             ->when(
                 $request->has('customer_id'),
-                fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($request->customer_id))
+                fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
             )
             ->when($request->has('customer_id'), fn (Builder $query) => $query->with('employee:id,uuid,name'))
             ->when($request->has('employee_id'), fn (Builder $query) => $query->with('customer:id,uuid,name'))
@@ -90,8 +103,6 @@ class ComplaintController extends Controller
             )
             ->latest()
             ->get();
-
-        // dd($complaints->first());
 
         return $this->response(
             data: [
@@ -123,7 +134,11 @@ class ComplaintController extends Controller
             $complaintStatus = ComplaintStatus::REALLOCATED;
         }
 
-        $employeeId = User::findIdByUuid($request->employee_id);
+        /** @var string $employeeId */
+
+        $employeeId = $request->employee_id;
+
+        $employeeId = User::findIdByUuid($employeeId);
 
         $complaint->update([
             'employee_id' => $employeeId,
@@ -151,7 +166,11 @@ class ComplaintController extends Controller
             'status' => ['required', Rule::in([ComplaintStatus::CLOSED->name, ComplaintStatus::REOPENED->name])],
         ]);
 
-        $status = ComplaintStatus::createFromName($request->status);
+        /** @var string $status */
+
+        $status = $request->status;
+
+        $status = ComplaintStatus::createFromName($status);
 
         $complaint->update([
             'status' => $status,

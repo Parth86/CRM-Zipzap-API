@@ -93,6 +93,14 @@ class QueryController extends Controller
         $request->validate([
             'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
         ]);
+
+        // $user = auth()->user();
+        // $guard = null;
+
+        // if($user instanceof Customer){
+        //     $guard = 'customers';
+        // } else if($user )
+
         $queries = Query::query()
             ->select(['id', 'uuid', 'product', 'created_at', 'customer_id', 'status'])
             ->when(

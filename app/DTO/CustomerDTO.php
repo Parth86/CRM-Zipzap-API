@@ -8,12 +8,19 @@ class CustomerDTO
 {
     public function __construct(
         public readonly string $name,
-        public readonly string $phone
+        public readonly string $phone,
+        public readonly string $alert_phone,
+        public readonly ?string $password
     ) {
     }
 
     public static function fromModel(Customer $customer): self
     {
-        return new CustomerDTO($customer->name, $customer->phone);
+        return new CustomerDTO(
+            $customer->name,
+            $customer->phone,
+            $customer->alert_phone ?? $customer->phone,
+            $customer->original_password
+        );
     }
 }
