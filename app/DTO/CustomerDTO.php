@@ -16,7 +16,7 @@ class CustomerDTO
 
     public static function fromModel(Customer $customer): self
     {
-        return new CustomerDTO(
+        return new self(
             $customer->name,
             $customer->phone,
             $customer->alert_phone ?? $customer->phone,

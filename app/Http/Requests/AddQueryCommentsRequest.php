@@ -28,7 +28,7 @@ class AddQueryCommentsRequest extends FormRequest
     {
         return [
             'comments' => ['required', 'string'],
-            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
+            'photo' => ['nullable', 'sometimes', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
         ];
     }
 }

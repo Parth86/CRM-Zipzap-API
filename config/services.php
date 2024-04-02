@@ -32,7 +32,8 @@ return [
     ],
 
     'interakt' => [
-        'api_key' =>  (string) env('INTERAKT_API_KEY', ''),
+        'api_key' => (string) env('INTERAKT_API_KEY', ''),
+        'admin_phone' => env('ADMIN_PHONE'),
     ],
 
 ];

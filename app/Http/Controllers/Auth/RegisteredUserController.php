@@ -24,7 +24,7 @@ class RegisteredUserController extends Controller
 
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'nullable', new ValidPhone, 'unique:' . User::class],
+            'phone' => ['required', 'nullable', new ValidPhone, 'unique:'.User::class],
         ]);
 
         $user = User::create([
@@ -40,7 +40,7 @@ class RegisteredUserController extends Controller
         return $this->response(
             data: [
                 'user' => UserResource::make($user),
-                'res' => $res->body()
+                'res' => $res->body(),
             ],
             message: 'New Employee Created',
         );

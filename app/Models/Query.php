@@ -24,8 +24,8 @@ class Query extends Model
     {
         return $this->status->isClosed();
     }
+
     /**
-     *
      * @param  \Illuminate\Database\Eloquent\Builder<Query>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Query>
      */
@@ -33,8 +33,8 @@ class Query extends Model
     {
         return $query->where('status', QueryStatus::OPEN);
     }
+
     /**
-     *
      * @param  \Illuminate\Database\Eloquent\Builder<Query>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Query>
      */

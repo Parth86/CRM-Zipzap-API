@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class QueryController extends Controller
 {
@@ -53,7 +54,9 @@ class QueryController extends Controller
             ]);
 
             if ($request->has('photo')) {
-                $comment->addMedia($request->photo)->toMediaCollection();
+                /** @var UploadedFile $uploadedPhoto */
+                $uploadedPhoto = $request->validated('photo');
+                $comment->addMedia($uploadedPhoto)->toMediaCollection();
             }
         });
 
@@ -94,18 +97,14 @@ class QueryController extends Controller
             'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
         ]);
 
-        // $user = auth()->user();
-        // $guard = null;
-
-        // if($user instanceof Customer){
-        //     $guard = 'customers';
-        // } else if($user )
+        /** @var string $customerId */
+        $customerId = $request->customer_id;
 
         $queries = Query::query()
             ->select(['id', 'uuid', 'product', 'created_at', 'customer_id', 'status'])
             ->when(
                 $request->has('customer_id'),
-                fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($request->customer_id))
+                fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
             )
             ->when(
                 !$request->has('customer_id'),
@@ -146,7 +145,9 @@ class QueryController extends Controller
         }
 
         if ($request->has('photo')) {
-            $comment->addMedia($request->photo)->toMediaCollection();
+            /** @var UploadedFile $uploadedPhoto */
+            $uploadedPhoto = $request->validated('photo');
+            $comment->addMedia($uploadedPhoto)->toMediaCollection();
         }
 
         return $this->response(
@@ -182,21 +183,26 @@ class QueryController extends Controller
             'by_customer' => false,
         ]);
 
-        $res_admin = $this->service->sendQueryClosedMesageToAdmin(
-            QueryDTO::fromModel($query),
-            CustomerDTO::fromModel($query->customer)
-        );
+        $query->load('customer');
 
-        $res_customer = $this->service->sendQueryClosedMesageToCustomer(
-            QueryDTO::fromModel($query),
-            CustomerDTO::fromModel($query->customer)
-        );
+        if ($query->customer) {
+            $queryDTO = QueryDTO::fromModel($query);
+            $customerDTO = CustomerDTO::fromModel($query->customer);
+
+            $this->service->sendQueryClosedMesageToAdmin(
+                $queryDTO,
+                $customerDTO
+            );
+
+            $this->service->sendQueryClosedMesageToCustomer(
+                $queryDTO,
+                $customerDTO
+            );
+        }
 
         return $this->response(
             data: [
                 'query' => QueryResource::make($query->refresh()),
-                'res_admin' => $res_admin->body(),
-                'res_customer' => $res_customer->body()
             ],
             message: 'Query Comments'
         );

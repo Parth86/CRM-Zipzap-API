@@ -15,7 +15,7 @@ class EmployeeDTO
 
     public static function fromModel(User $user): self
     {
-        return new EmployeeDTO(
+        return new self(
             $user->name,
             $user->phone,
             $user->original_password

@@ -3,17 +3,28 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\PasswordReset;
+use App\Models\Customer;
+use App\Models\User;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
-use Illuminate\Validation\ValidationException;
 
 class NewPasswordController extends Controller
 {
+    private User|Customer $user;
+
+    public function __construct()
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            throw new Exception('Auth Failed');
+        }
+
+        $this->user = $user;
+    }
+
     /**
      * Handle an incoming new password request.
      *
@@ -22,32 +33,43 @@ class NewPasswordController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'token' => ['required'],
-            'email' => ['required', 'email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'old_password' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        /** @var string $old_password */
+        $old_password = $request->old_password;
 
-                event(new PasswordReset($user));
-            }
-        );
-
-        if ($status != Password::PASSWORD_RESET) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+        if (! Hash::check($old_password, $this->user->password)) {
+            return $this->response([
+                'errors' => [
+                    'old_password' => 'Old Password is incorrect',
+                ],
+            ], 'Old Password is incorrect', false, 400);
         }
 
-        return response()->json(['status' => __($status)]);
+        /** @var string $password */
+        $password = $request->password;
+        $this->user->update([
+            'password' => Hash::make($password),
+        ]);
+
+        return $this->response([], 'Password Changed Successfully', true);
+    }
+
+    public function change(Request $request): JsonResponse
+    {
+        $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        /** @var string $password */
+        $password = $request->password;
+
+        $this->user->update([
+            'password' => Hash::make($password),
+        ]);
+
+        return $this->response([], 'Password Changed Successfully', true);
     }
 }

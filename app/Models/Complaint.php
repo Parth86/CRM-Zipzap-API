@@ -58,12 +58,13 @@ class Complaint extends Model implements HasMedia
     {
         return is_null($this->employee_id);
     }
+
     public function isPending(): bool
     {
         return $this->status->isPending();
     }
+
     /**
-     *
      * @param  \Illuminate\Database\Eloquent\Builder<Complaint>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Complaint>
      */
@@ -71,8 +72,8 @@ class Complaint extends Model implements HasMedia
     {
         return $query->whereNot('status', ComplaintStatus::CLOSED);
     }
+
     /**
-     *
      * @param  \Illuminate\Database\Eloquent\Builder<Complaint>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Complaint>
      */

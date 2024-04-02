@@ -15,6 +15,7 @@ class CustomerController extends Controller
     public function __construct(private InteraktService $service)
     {
     }
+
     public function create(StoreCustomerRequest $request): JsonResponse
     {
         $customer = Customer::query()->create([
@@ -32,7 +33,7 @@ class CustomerController extends Controller
         return $this->response(
             data: [
                 'customer' => CustomerResource::make($customer),
-                'res' => $res->body()
+                'res' => $res->body(),
             ],
             message: 'New Customer Created',
             status: true,

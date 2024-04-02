@@ -38,18 +38,19 @@ class LoginRequest extends FormRequest
 
     /**
      * Attempt to authenticate the request's credentials.
-     *
-     * @throws \Illuminate\Validation\ValidationException
      */
     public function authenticate(): void
     {
         // $this->ensureIsNotRateLimited();
 
-        $role = Role::tryFrom($this->validated('role'));
+        /** @var string $role */
+        $role = $this->validated('role');
 
-        // if (!$role) {
-        //     throw new Exception("Invalid Role");ß
-        // }
+        $role = Role::tryFrom($role);
+
+        if (!$role) {
+            throw new Exception("Invalid Role");
+        }
 
         request()->role = $role;
 

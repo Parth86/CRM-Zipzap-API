@@ -13,6 +13,6 @@ class ComplaintDTO
 
     public static function fromModel(Complaint $query): self
     {
-        return new ComplaintDTO($query->product);
+        return new self($query->product);
     }
 }

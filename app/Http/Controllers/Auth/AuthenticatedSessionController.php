@@ -34,7 +34,7 @@ class AuthenticatedSessionController extends Controller
         $user = auth()->guard($this->role->loginGuard())->user();
 
         if ($user == null) {
-            throw new Exception("Auth Failed");
+            throw new Exception('Auth Failed');
         }
 
         $this->user = $user;
@@ -57,8 +57,8 @@ class AuthenticatedSessionController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user instanceof User and !$user instanceof Customer) {
-            throw new Exception("Auth Failed");
+        if (! $user instanceof User and ! $user instanceof Customer) {
+            throw new Exception('Auth Failed');
         }
         $this->user = $user;
         $this->user->tokens()->delete();

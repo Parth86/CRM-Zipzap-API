@@ -13,6 +13,6 @@ class QueryDTO
 
     public static function fromModel(Query $query): self
     {
-        return new QueryDTO($query->product);
+        return new self($query->product);
     }
 }

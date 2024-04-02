@@ -9,8 +9,6 @@ trait HasUuid
 {
     /**
      * Find a model instance by UUID.
-     *
-     * @return self
      */
     public static function findByUuid(string $uuid): self
     {

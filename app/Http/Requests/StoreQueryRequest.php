@@ -30,7 +30,7 @@ class StoreQueryRequest extends FormRequest
             // 'customer_id' => ['required', 'exists:' . Customer::class . ',uuid'],
             'product' => ['required', 'string'],
             'comments' => ['required', 'string'],
-            'photo' => ['sometimes', 'nullable', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
+            'photo' => ['nullable', 'sometimes', File::types(['png', 'jpg', 'jpeg', 'pdf'])->max(8000)],
         ];
     }
 }

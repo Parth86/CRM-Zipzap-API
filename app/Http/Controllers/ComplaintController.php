@@ -27,7 +27,6 @@ class ComplaintController extends Controller
     ) {
     }
 
-
     public function create(StoreComplaintRequest $request): JsonResponse
     {
         /** @var string $customerId */
@@ -75,10 +74,10 @@ class ComplaintController extends Controller
             'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
         ]);
 
-        /** @var string $employeeId*/
+        /** @var string $employeeId */
         $employeeId = $request->employee_id;
 
-        /** @var string $customerId*/
+        /** @var string $customerId */
         $customerId = $request->customer_id;
 
         $complaints = Complaint::query()
@@ -135,7 +134,6 @@ class ComplaintController extends Controller
         }
 
         /** @var string $employeeId */
-
         $employeeId = $request->employee_id;
 
         $employeeId = User::findIdByUuid($employeeId);
@@ -167,7 +165,6 @@ class ComplaintController extends Controller
         ]);
 
         /** @var string $status */
-
         $status = $request->status;
 
         $status = ComplaintStatus::createFromName($status);
@@ -176,33 +173,35 @@ class ComplaintController extends Controller
             'status' => $status,
         ]);
 
+        /** @var User $user */
+        $user = $request->user();
+
         $complaint->statusChanges()->create([
             'status' => $status,
-            'employee_id' => $complaint->employee_id,
+            'employee_id' => $user->id,
             'created_at' => now(),
         ]);
 
-        $res_admin = null;
+        $complaint->load('customer');
 
-        $res_customer = null;
+        if ($status and $status->isClosed() and $complaint->customer) {
+            $complaintDTO = ComplaintDTO::fromModel($complaint);
+            $customerDTO = CustomerDTO::fromModel($complaint->customer);
 
-        if ($status and $status->isClosed()) {
-            $res_admin = $this->service->sendComplaintClosedMesageToAdmin(
-                ComplaintDTO::fromModel($complaint),
-                CustomerDTO::fromModel($complaint->customer)
+            $this->service->sendComplaintClosedMesageToAdmin(
+                $complaintDTO,
+                $customerDTO
             );
 
-            $res_customer = $this->service->sendComplaintClosedMesageToCustomer(
-                ComplaintDTO::fromModel($complaint),
-                CustomerDTO::fromModel($complaint->customer)
+            $this->service->sendComplaintClosedMesageToCustomer(
+                $complaintDTO,
+                $customerDTO
             );
         }
 
         return $this->response(
             data: [
                 'complaint' => ComplaintIndexResource::make($complaint->refresh()),
-                'res_admin' => $res_admin?->body(),
-                'res_customer' => $res_customer?->body()
             ],
             message: 'Complaint Completed'
         );
