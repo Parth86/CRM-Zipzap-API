@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('complaints', function (Blueprint $table) {
-            $table->foreignId('created_by_id')->nullable()->after('role')->references('id')->on('users');
+            $table->foreignId('created_by_id')->nullable()->references('id')->on('users');
         });
     }
 
