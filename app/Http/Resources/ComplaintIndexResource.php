@@ -30,7 +30,14 @@ class ComplaintIndexResource extends JsonResource
             'statusChanges' => ComplaintStatusChangeResource::collection($this->whenLoaded('statusChanges')),
         ];
 
-        if (! request()->has('customer_id')) {
+        if ($this->relationLoaded('user') and $this->user) {
+            $response['created_by'] = $this->user->name;
+        } else {
+            $response['created_by'] = "Customer";
+        }
+
+
+        if (!request()->has('customer_id')) {
             $response['admin_comments'] = $this->admin_comments;
         }
 

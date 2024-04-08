@@ -11,4 +11,14 @@ enum UserRole: int
     {
         return $this->name;
     }
+
+    public function isAdmin(): bool
+    {
+        return $this === self::ADMIN;
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this === self::EMPLOYEE;
+    }
 }

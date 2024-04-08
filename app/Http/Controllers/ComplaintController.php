@@ -29,15 +29,22 @@ class ComplaintController extends Controller
 
     public function create(StoreComplaintRequest $request): JsonResponse
     {
+
         /** @var string $customerId */
         $customerId = $request->validated('customer_id');
         $customer = Customer::findByUuid($customerId);
 
-        $complaint = $customer->complaints()->create([
+        $data = [
             'comments' => $request->validated('comments'),
             'product' => $request->validated('product'),
             'status' => ComplaintStatus::PENDING,
-        ]);
+        ];
+
+        if (auth()->user() instanceof User) {
+            $data['created_by_id'] = auth()->id();
+        }
+
+        $complaint = $customer->complaints()->create($data);
 
         if ($request->has('photo')) {
             /** @var UploadedFile $uploadedPhoto */
@@ -45,12 +52,14 @@ class ComplaintController extends Controller
             $complaint->addMedia($uploadedPhoto)->toMediaCollection();
         }
 
-        $res_admin = $this->service->sendNewComplaintCreatedMessageToAdmin(
-            CustomerDTO::fromModel($customer),
-            ComplaintDTO::fromModel($complaint)
-        );
+        if (!(auth()->user() instanceof User) or !(auth()->user()->role->isAdmin())) {
+            $this->service->sendNewComplaintCreatedMessageToAdmin(
+                CustomerDTO::fromModel($customer),
+                ComplaintDTO::fromModel($complaint)
+            );
+        }
 
-        $res_customer = $this->service->sendNewComplaintCreatedMessageToCustomer(
+        $this->service->sendNewComplaintCreatedMessageToCustomer(
             ComplaintDTO::fromModel($complaint),
             CustomerDTO::fromModel($customer)
         );
@@ -58,10 +67,6 @@ class ComplaintController extends Controller
         return $this->response(
             data: [
                 'complaint' => ComplaintResource::make($complaint->load('media')),
-                'api_response' => [
-                    'admin' => $res_admin->body(),
-                    'customer' => $res_customer->body(),
-                ],
             ],
             message: 'New Complaint Created'
         );
@@ -82,10 +87,11 @@ class ComplaintController extends Controller
 
         $complaints = Complaint::query()
             ->with('media')
+            ->with('user:id,name')
             ->with([
                 'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at'),
             ])
-            ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id'])
+            ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id', 'created_by_id'])
             ->when(
                 $request->has('employee_id'),
                 fn (Builder $query) => $query->where('employee_id', User::findIdByUuid($employeeId))
@@ -102,6 +108,7 @@ class ComplaintController extends Controller
             )
             ->latest()
             ->get();
+
 
         return $this->response(
             data: [

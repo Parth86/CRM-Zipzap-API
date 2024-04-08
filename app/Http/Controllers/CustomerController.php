@@ -43,7 +43,10 @@ class CustomerController extends Controller
 
     public function index(): JsonResponse
     {
-        $customers = Customer::query()->select('uuid', 'name')->get();
+        $customers = Customer::query()
+            ->select('uuid', 'name')
+            ->orderBy('name')
+            ->get();
 
         return $this->response(
             data: [

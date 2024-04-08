@@ -47,6 +47,14 @@ class Complaint extends Model implements HasMedia
     }
 
     /**
+     * @return BelongsTo<User,Complaint>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_id');
+    }
+
+    /**
      * @return HasMany<ComplaintStatusChange>
      */
     public function statusChanges(): HasMany
