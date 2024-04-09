@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -60,6 +61,14 @@ class Complaint extends Model implements HasMedia
     public function statusChanges(): HasMany
     {
         return $this->hasMany(ComplaintStatusChange::class);
+    }
+
+    /**
+     * @return HasOne<ComplaintStatusChange>
+     */
+    public function statusChangedClosed(): HasOne
+    {
+        return $this->hasOne(ComplaintStatusChange::class)->where('status', ComplaintStatus::CLOSED)->latestOfMany();
     }
 
     public function isAllocatedToEmployee(): bool

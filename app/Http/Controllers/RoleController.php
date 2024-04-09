@@ -11,7 +11,7 @@ class RoleController extends Controller
     {
         return $this->response(
             data: [
-                'roles' => Role::cases(),
+                'roles' => Role::labels(),
             ],
             message: 'List of Roles'
         );

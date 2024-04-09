@@ -49,4 +49,11 @@ enum Role: string
     {
         return $this->name;
     }
+
+    public static function labels(): array
+    {
+        return collect([self::CUSTOMER, self::EMPLOYEE, self::ADMIN])
+            ->pluck('name')
+            ->toArray();
+    }
 }

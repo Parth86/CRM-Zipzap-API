@@ -77,6 +77,7 @@ class ComplaintController extends Controller
         $request->validate([
             'employee_id' => ['sometimes', 'string', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
             'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
+            'status' => ['sometimes', Rule::in(['ALL', 'PENDING', 'CLOSED'])]
         ]);
 
         /** @var string $employeeId */
@@ -105,6 +106,16 @@ class ComplaintController extends Controller
             ->when(
                 !$request->has('customer_id') and !$request->has('employee_id'),
                 fn (Builder $query) => $query->with('customer:id,uuid,name')->with('employee:id,uuid,name')
+            )
+            ->when(
+                $request->has('status'),
+                function (Builder $query) use ($request) {
+                    if ($request->status === 'CLOSED') {
+                        $query->where('status', ComplaintStatus::CLOSED);
+                    } else if ($request->status === 'PENDING') {
+                        $query->whereNot('status', ComplaintStatus::CLOSED);
+                    }
+                }
             )
             ->latest()
             ->get();
