@@ -57,11 +57,12 @@ class AuthenticatedSessionController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user instanceof User and ! $user instanceof Customer) {
+        if (!$user instanceof User and !$user instanceof Customer) {
             throw new Exception('Auth Failed');
         }
         $this->user = $user;
-        $this->user->tokens()->delete();
+        // $this->user->tokens()->delete();
+        $this->user->currentAccessToken()->delete();
 
         Auth::guard('web')->logout();
         Auth::guard('customers')->logout();
