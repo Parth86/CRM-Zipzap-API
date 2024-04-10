@@ -16,7 +16,7 @@ class InteraktService
 
     private string $apiToken;
 
-    private string $websiteUrl = 'https://crm.zipzap.in/';
+    private string $websiteUrl;
 
     private string $adminPhone;
 
@@ -29,16 +29,20 @@ class InteraktService
         /** @var string $adminPhone */
         $adminPhone = config('services.interakt.admin_phone');
         $this->adminPhone = $adminPhone;
+
+        $websiteUrl = config('app.frontend_url') . "/";
+        $this->websiteUrl = $websiteUrl;
     }
 
     /**
      * @param  array<int, string|null>  $bodyValues
      * @param  array<int, array<int, string>>  $buttonValues
      */
-    private function sendMessage(string $endpoint, string $phone, string $templateName, array $bodyValues, array $buttonValues): Response
+    private function sendMessage(string $phone, string $templateName, array $bodyValues, array $buttonValues): Response
     {
+        $endpoint = $this->url . 'message/';
         $data = [
-            'fullPhoneNumber' => '91'.$phone,
+            'fullPhoneNumber' => '91' . $phone,
             'callbackData' => 'some text here',
             'type' => 'Template',
             'template' => [
@@ -51,7 +55,7 @@ class InteraktService
         ];
 
         $res = Http::withHeaders([
-            'Authorization' => 'Basic '.$this->apiToken,
+            'Authorization' => 'Basic ' . $this->apiToken,
             'Content-Type' => 'application/json',
         ])
             ->post($endpoint, $data);
@@ -61,13 +65,11 @@ class InteraktService
 
     public function sendNewComplaintCreatedMessageToAdmin(CustomerDTO $customer, ComplaintDTO $complaint): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_new_complaint_created_admin_3m';
-        $buttonUrl = $this->websiteUrl.'complaintsView';
+        $buttonUrl = $this->websiteUrl . 'complaintsView';
 
         return $this->sendMessage(
             phone: $this->adminPhone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $complaint->product,
@@ -84,13 +86,11 @@ class InteraktService
 
     public function sendNewComplaintCreatedMessageToCustomer(ComplaintDTO $complaint, CustomerDTO $customer): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_new_complaint_created_customer_ih';
-        $buttonUrl = $this->websiteUrl.'customerView';
+        $buttonUrl = $this->websiteUrl . 'customerView';
 
         return $this->sendMessage(
             phone: $customer->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $complaint->product,
@@ -105,13 +105,11 @@ class InteraktService
 
     public function sendComplaintClosedMesageToAdmin(ComplaintDTO $complaint, CustomerDTO $customer): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_complaint_closed_admin';
-        $buttonUrl = $this->websiteUrl.'customerView';
+        $buttonUrl = $this->websiteUrl . 'customerView';
 
         return $this->sendMessage(
             phone: $this->adminPhone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $complaint->product,
@@ -128,13 +126,11 @@ class InteraktService
     public function sendComplaintClosedMesageToCustomer(ComplaintDTO $complaint, CustomerDTO $customer): Response
     {
 
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_complaint_closed_customer';
-        $buttonUrl = $this->websiteUrl.'complaintsView';
+        $buttonUrl = $this->websiteUrl . 'complaintsView';
 
         return $this->sendMessage(
             phone: $customer->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $complaint->product,
@@ -149,13 +145,11 @@ class InteraktService
 
     public function sendQueryClosedMesageToAdmin(QueryDTO $query, CustomerDTO $customer): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_query_closed_admin';
-        $buttonUrl = $this->websiteUrl.'queryView';
+        $buttonUrl = $this->websiteUrl . 'queryView';
 
         return $this->sendMessage(
             phone: $this->adminPhone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $query->product,
@@ -172,13 +166,11 @@ class InteraktService
     public function sendQueryClosedMesageToCustomer(QueryDTO $query, CustomerDTO $customer): Response
     {
 
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_query_closed_customer';
-        $buttonUrl = $this->websiteUrl.'complaintsView';
+        $buttonUrl = $this->websiteUrl . 'complaintsView';
 
         return $this->sendMessage(
             phone: $customer->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $query->product,
@@ -193,13 +185,11 @@ class InteraktService
 
     public function sendNewqueryCreatedMessageToAdmin(CustomerDTO $customer, QueryDTO $query): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_new_query_created_admin';
-        $buttonUrl = $this->websiteUrl.'queryView';
+        $buttonUrl = $this->websiteUrl . 'queryView';
 
         return $this->sendMessage(
             phone: $this->adminPhone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $query->product,
@@ -216,13 +206,11 @@ class InteraktService
 
     public function sendNewQueryCreatedMessageToCustomer(QueryDTO $query, CustomerDTO $customer): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_new_query_created_customer';
-        $buttonUrl = $this->websiteUrl.'queryView';
+        $buttonUrl = $this->websiteUrl . 'queryView';
 
         return $this->sendMessage(
             phone: $customer->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $query->product,
@@ -237,12 +225,10 @@ class InteraktService
 
     public function sendNewAccountCreatedMessageToCustomer(CustomerDTO $customer): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_account_created_customer';
 
         return $this->sendMessage(
             phone: $customer->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $customer->phone,
@@ -254,12 +240,10 @@ class InteraktService
 
     public function sendNewAccountCreatedMessageToEmployee(EmployeeDTO $employee): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_account_created_employee';
 
         return $this->sendMessage(
             phone: $employee->phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $employee->phone,
@@ -271,17 +255,39 @@ class InteraktService
 
     public function sendOTPMessage(UserDTO $user): Response
     {
-        $endpoint = $this->url.'message/';
         $templateName = 'crm_otp';
 
         return $this->sendMessage(
             phone: $user->alert_phone,
-            endpoint: $endpoint,
             templateName: $templateName,
             bodyValues: [
                 $user->otp,
             ],
             buttonValues: []
+        );
+    }
+
+    public function sendComplaintAllocatedMessageToEmployee(
+        CustomerDTO $customer,
+        ComplaintDTO $complaint,
+        EmployeeDTO $employee
+    ) {
+        $templateName = "crm_complaint_allocated_to_employee";
+
+        $buttonUrl = $this->websiteUrl;
+
+        return $this->sendMessage(
+            phone: $employee->phone,
+            templateName: $templateName,
+            bodyValues: [
+                $customer->name,
+                $complaint->product,
+            ],
+            buttonValues: [
+                '0' => [
+                    $buttonUrl,
+                ],
+            ]
         );
     }
 }

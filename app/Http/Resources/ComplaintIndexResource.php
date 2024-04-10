@@ -24,8 +24,9 @@ class ComplaintIndexResource extends JsonResource
             'comments' => $this->comments,
             'created_at' => $this->created_at?->format('h:i:s A d-m-Y'),
             'status' => $this->status->label(),
-            'employee' => EmployeeResource::make($this->whenLoaded('employee')),
+            'employee' => EmployeeIndexResource::make($this->whenLoaded('employee')),
             'statusChanges' => ComplaintStatusChangeResource::collection($this->whenLoaded('statusChanges')),
+            'age' => (int) $this->created_at->diffInDays(now())
         ];
 
         if ($this->relationLoaded('customer')) {

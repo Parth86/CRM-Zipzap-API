@@ -41,10 +41,26 @@ class Customer extends Authenticatable
     }
 
     /**
+     * @return HasMany<Complaint>
+     */
+    public function closedComplaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class)->closed();
+    }
+
+    /**
      * @return HasMany<Query>
      */
     public function queries(): HasMany
     {
         return $this->hasMany(Query::class);
+    }
+
+    /**
+     * @return HasMany<Query>
+     */
+    public function closedQueries(): HasMany
+    {
+        return $this->hasMany(Query::class)->closed();
     }
 }

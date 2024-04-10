@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\QueryController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,4 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('queries/{query}', [QueryController::class, 'view']);
     Route::put('queries/{query}', [QueryController::class, 'addComments']);
     Route::patch('queries/{query}', [QueryController::class, 'completeQuery']);
+
+    Route::get('reports/customers', [ReportController::class, 'customers']);
+    Route::get('reports/employees', [ReportController::class, 'employees']);
 });

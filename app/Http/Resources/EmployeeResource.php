@@ -21,6 +21,17 @@ class EmployeeResource extends JsonResource
         return [
             'id' => $this->uuid,
             'name' => $this->name,
+            'phone' => $this->phone,
+            'complaints' => [
+                'current' => [
+                    'total' => $this->complaints_count,
+                    'closed' => $this->closed_complaints_count
+                ],
+                'overall' => [
+                    'total' => $this->overall_complaints_count,
+                    'closed' => $this->overall_closed_complaints_count
+                ]
+            ]
         ];
     }
 }

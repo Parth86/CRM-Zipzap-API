@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\ComplaintDTO;
 use App\DTO\CustomerDTO;
+use App\DTO\EmployeeDTO;
 use App\Enums\ComplaintStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreComplaintRequest;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Log;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ComplaintController extends Controller
@@ -118,7 +120,6 @@ class ComplaintController extends Controller
                     }
                 }
             )
-            ->latest()
             ->get();
 
         return $this->response(
@@ -154,19 +155,30 @@ class ComplaintController extends Controller
         /** @var string $employeeId */
         $employeeId = $request->employee_id;
 
-        $employeeId = User::findIdByUuid($employeeId);
+        $employee = User::findByUuid($employeeId);
 
         $complaint->update([
-            'employee_id' => $employeeId,
+            'employee_id' => $employee->id,
             'admin_comments' => $request->comments,
             'status' => $complaintStatus,
         ]);
 
         $complaint->statusChanges()->create([
             'status' => $complaintStatus,
-            'employee_id' => $employeeId,
+            'employee_id' => $employee->id,
             'created_at' => now(),
         ]);
+
+        try {
+
+            $this->service->sendComplaintAllocatedMessageToEmployee(
+                employee: EmployeeDTO::fromModel($employee),
+                complaint: ComplaintDTO::fromModel($complaint),
+                customer: CustomerDTO::fromModel($complaint->customer)
+            );
+        } catch (\Throwable $th) {
+            Log::info($th->getMessage());
+        }
 
         return $this->response(
             data: [
