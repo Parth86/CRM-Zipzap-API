@@ -68,7 +68,9 @@ class Complaint extends Model implements HasMedia
      */
     public function statusChangedClosed(): HasOne
     {
-        return $this->hasOne(ComplaintStatusChange::class)->where('status', ComplaintStatus::CLOSED)->latestOfMany();
+        return $this->hasOne(ComplaintStatusChange::class)
+            ->where('status', ComplaintStatus::CLOSED)
+            ->latestOfMany();
     }
 
     public function isAllocatedToEmployee(): bool

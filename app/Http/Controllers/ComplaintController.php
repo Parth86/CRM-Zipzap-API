@@ -77,7 +77,7 @@ class ComplaintController extends Controller
         $request->validate([
             'employee_id' => ['sometimes', 'string', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
             'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
-            'status' => ['sometimes', Rule::in(['ALL', 'PENDING', 'CLOSED'])]
+            'status' => ['sometimes', Rule::in(['ALL', 'PENDING', 'CLOSED'])],
         ]);
 
         /** @var string $employeeId */
@@ -88,10 +88,11 @@ class ComplaintController extends Controller
 
         $complaints = Complaint::query()
             ->with('media')
-            ->with('user:id,name')
+            ->with('user:id,name,role')
             ->with([
                 'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at'),
             ])
+            ->with('statusChangedClosed')
             ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id', 'created_by_id'])
             ->when(
                 $request->has('employee_id'),
@@ -112,14 +113,13 @@ class ComplaintController extends Controller
                 function (Builder $query) use ($request) {
                     if ($request->status === 'CLOSED') {
                         $query->where('status', ComplaintStatus::CLOSED);
-                    } else if ($request->status === 'PENDING') {
+                    } elseif ($request->status === 'PENDING') {
                         $query->whereNot('status', ComplaintStatus::CLOSED);
                     }
                 }
             )
             ->latest()
             ->get();
-
 
         return $this->response(
             data: [
@@ -172,7 +172,7 @@ class ComplaintController extends Controller
             data: [
                 'complaint' => ComplaintIndexResource::make($complaint->refresh()),
             ],
-            message: 'New Complaint Created'
+            message: 'Complaint allocated to employee'
         );
     }
 

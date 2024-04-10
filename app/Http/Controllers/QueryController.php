@@ -38,7 +38,7 @@ class QueryController extends Controller
 
         $customer = $request->user();
 
-        if (!$customer instanceof Customer) {
+        if (! $customer instanceof Customer) {
             throw new Exception('Auth Failed');
         }
 
@@ -60,7 +60,7 @@ class QueryController extends Controller
             }
         });
 
-        if (!$query) {
+        if (! $query) {
             return $this->response(
                 data: [],
                 message: 'New Query Failed',
@@ -107,7 +107,7 @@ class QueryController extends Controller
                 fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
             )
             ->when(
-                !$request->has('customer_id'),
+                ! $request->has('customer_id'),
                 fn (Builder $query) => $query->with('customer:id,uuid,name')
             )
             ->latest()

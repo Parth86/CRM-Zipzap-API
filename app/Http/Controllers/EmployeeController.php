@@ -10,7 +10,10 @@ class EmployeeController extends Controller
 {
     public function index(): JsonResponse
     {
-        $employees = User::query()->isEmployee()->get();
+        $employees = User::query()
+            ->isEmployee()
+            ->orderBy('name')
+            ->get();
 
         return $this->response(
             data: [

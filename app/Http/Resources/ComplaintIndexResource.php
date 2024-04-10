@@ -24,21 +24,38 @@ class ComplaintIndexResource extends JsonResource
             'comments' => $this->comments,
             'created_at' => $this->created_at?->format('h:i:s A d-m-Y'),
             'status' => $this->status->label(),
-            'photo' => $this->whenLoaded('media', $this->media->first()?->getUrl()),
-            'customer' => CustomerResource::make($this->whenLoaded('customer')),
             'employee' => EmployeeResource::make($this->whenLoaded('employee')),
             'statusChanges' => ComplaintStatusChangeResource::collection($this->whenLoaded('statusChanges')),
         ];
 
-        if ($this->relationLoaded('user') and $this->user) {
-            $response['created_by'] = $this->user->name;
-        } else {
-            $response['created_by'] = "Customer";
+        if ($this->relationLoaded('customer')) {
+            $response['customer'] = $this->customer->only('name');
         }
 
+        if ($this->relationLoaded('user') and $this->user) {
+            $response['created_by'] = $this->user->name . " ({$this->user->role->label()})";
+        } else {
+            $response['created_by'] = $this->customer?->name . ' (Customer)';
+        }
 
         if (!request()->has('customer_id')) {
             $response['admin_comments'] = $this->admin_comments;
+        }
+
+        $response['closed_at'] = null;
+        $response['closing_duration'] = null;
+
+        if ($this->status->isClosed() and $this->statusChangedClosed) {
+            $response['closed_at'] = $this->statusChangedClosed->created_at->format('h:i:s A d-m-Y');
+            $response['closing_duration'] = [
+                'words' => $this->statusChangedClosed->created_at->diffForHumans($this->created_at),
+                'seconds' => $this->created_at->diffInSeconds($this->statusChangedClosed->created_at),
+                'days' => $this->created_at->diffInDays($this->statusChangedClosed->created_at),
+            ];
+        }
+
+        if ($this->relationLoaded('media')) {
+            $response['photo'] = $this->media->first()?->getUrl();
         }
 
         return $response;

@@ -65,7 +65,7 @@ class PasswordResetLinkController extends Controller
             [
                 'res' => $res->body(),
             ],
-            "OTP sent to your phone {$user->alert_phone}"
+            "OTP sent to your whatsapp number {$user->alert_phone}"
         );
     }
 
