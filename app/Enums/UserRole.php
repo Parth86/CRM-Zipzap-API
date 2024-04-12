@@ -6,6 +6,7 @@ enum UserRole: int
 {
     case ADMIN = 1;
     case EMPLOYEE = 2;
+    case SUPERADMIN = 3;
 
     public function label(): string
     {
@@ -20,5 +21,10 @@ enum UserRole: int
     public function isEmployee(): bool
     {
         return $this === self::EMPLOYEE;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this === self::SUPERADMIN;
     }
 }
