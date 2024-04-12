@@ -24,6 +24,7 @@ class CustomerController extends Controller
             'phone' => $request->validated('phone'),
             'alert_phone' => $request->validated('alert_phone'),
             'address' => $request->validated('address'),
+            'created_by_id' => auth()->id()
         ]);
 
         $res = $this->service->sendNewAccountCreatedMessageToCustomer(
