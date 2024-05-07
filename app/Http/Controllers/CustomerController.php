@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DTO\CustomerDTO;
 use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 use App\Http\Resources\CustomerIndexResource;
 use App\Http\Resources\CustomerResource;
 use App\Models\Customer;
@@ -37,6 +38,30 @@ class CustomerController extends Controller
                 'res' => $res->body(),
             ],
             message: 'New Customer Created',
+            status: true,
+            code: 200
+        );
+    }
+
+    public function update(UpdateCustomerRequest $request, Customer $customer): JsonResponse
+    {
+        $customer->update([
+            'name' => $request->validated('name'),
+            'email' => $request->validated('email'),
+            'phone' => $request->validated('phone'),
+            'alert_phone' => $request->validated('alert_phone'),
+            'address' => $request->validated('address'),
+        ]);
+
+        // $res = $this->service->sendNewAccountCreatedMessageToCustomer(
+        //     CustomerDTO::fromModel($customer)
+        // );
+
+        return $this->response(
+            data: [
+                'customer' => CustomerResource::make($customer),
+            ],
+            message: 'Customer Updated',
             status: true,
             code: 200
         );

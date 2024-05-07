@@ -30,7 +30,7 @@ class ComplaintIndexResource extends JsonResource
         ];
 
         if ($this->relationLoaded('customer')) {
-            $response['customer'] = $this->customer->only('name');
+            $response['customer'] = $this->customer->only('name', 'phone');
         }
 
         if ($this->relationLoaded('user') and $this->user) {

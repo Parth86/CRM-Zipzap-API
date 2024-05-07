@@ -83,6 +83,11 @@ class Complaint extends Model implements HasMedia
         return $this->status->isPending();
     }
 
+    public function isClosed(): bool
+    {
+        return $this->status->isClosed();
+    }
+
     /**
      * @param  \Illuminate\Database\Eloquent\Builder<Complaint>  $query
      * @return \Illuminate\Database\Eloquent\Builder<Complaint>
@@ -99,5 +104,10 @@ class Complaint extends Model implements HasMedia
     public function scopeClosed(Builder $query): Builder
     {
         return $query->where('status', ComplaintStatus::CLOSED);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(ComplaintComment::class);
     }
 }

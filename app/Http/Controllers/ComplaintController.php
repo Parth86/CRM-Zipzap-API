@@ -8,6 +8,7 @@ use App\DTO\EmployeeDTO;
 use App\Enums\ComplaintStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreComplaintRequest;
+use App\Http\Resources\ComplaintCommentResource;
 use App\Http\Resources\ComplaintIndexResource;
 use App\Http\Resources\ComplaintResource;
 use App\Models\Complaint;
@@ -105,10 +106,10 @@ class ComplaintController extends Controller
                 fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
             )
             ->when($request->has('customer_id'), fn (Builder $query) => $query->with('employee:id,uuid,name'))
-            ->when($request->has('employee_id'), fn (Builder $query) => $query->with('customer:id,uuid,name'))
+            ->when($request->has('employee_id'), fn (Builder $query) => $query->with('customer:id,uuid,name,phone'))
             ->when(
                 !$request->has('customer_id') and !$request->has('employee_id'),
-                fn (Builder $query) => $query->with('customer:id,uuid,name')->with('employee:id,uuid,name')
+                fn (Builder $query) => $query->with('customer:id,uuid,name,phone')->with('employee:id,uuid,name')
             )
             ->when(
                 $request->has('status'),
@@ -234,6 +235,19 @@ class ComplaintController extends Controller
                 'complaint' => ComplaintIndexResource::make($complaint->refresh()),
             ],
             message: 'Complaint Completed'
+        );
+    }
+
+    public function view(Complaint $complaint): JsonResponse
+    {
+        $comments = $complaint->comments()->with('media', 'user')->latest()->get();
+
+        return $this->response(
+            data: [
+                'complaint' => ComplaintResource::make($complaint),
+                'comments' => ComplaintCommentResource::collection($comments),
+            ],
+            message: 'Complaint Comments'
         );
     }
 }
