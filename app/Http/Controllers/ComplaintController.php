@@ -11,6 +11,8 @@ use App\Http\Requests\StoreComplaintRequest;
 use App\Http\Resources\ComplaintCommentResource;
 use App\Http\Resources\ComplaintIndexResource;
 use App\Http\Resources\ComplaintResource;
+use App\Http\Resources\CustomerResource;
+use App\Http\Resources\EmployeeResource;
 use App\Models\Complaint;
 use App\Models\Customer;
 use App\Models\User;
@@ -92,11 +94,15 @@ class ComplaintController extends Controller
         $complaints = Complaint::query()
             ->with('media')
             ->with('user:id,name,role')
+            ->with('employee:id,uuid,name')
+            ->with('customer:id,uuid,name,phone')
             ->with([
                 'statusChanges' => fn (HasMany $statusChanges) => $statusChanges->with('employee')->orderByDesc('created_at'),
             ])
             ->with('statusChangedClosed')
-            ->select(['id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id', 'created_by_id'])
+            ->select([
+                'id', 'uuid', 'comments', 'admin_comments', 'status', 'product', 'created_at', 'customer_id', 'employee_id', 'created_by_id'
+            ])
             ->when(
                 $request->has('employee_id'),
                 fn (Builder $query) => $query->where('employee_id', User::findIdByUuid($employeeId))
@@ -104,12 +110,6 @@ class ComplaintController extends Controller
             ->when(
                 $request->has('customer_id'),
                 fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
-            )
-            ->when($request->has('customer_id'), fn (Builder $query) => $query->with('employee:id,uuid,name'))
-            ->when($request->has('employee_id'), fn (Builder $query) => $query->with('customer:id,uuid,name,phone'))
-            ->when(
-                !$request->has('customer_id') and !$request->has('employee_id'),
-                fn (Builder $query) => $query->with('customer:id,uuid,name,phone')->with('employee:id,uuid,name')
             )
             ->when(
                 $request->has('status'),
@@ -123,10 +123,20 @@ class ComplaintController extends Controller
             )
             ->get();
 
+        $responseData = [
+            'complaints' => ComplaintIndexResource::collection($complaints),
+        ];
+
+        if ($request->has('customer_id')) {
+            $responseData['customer'] = CustomerResource::make(Customer::findByUuid($request->customer_id));
+        }
+
+        if ($request->has('employee_id')) {
+            $responseData['employee'] = EmployeeResource::make(User::findByUuid($request->employee_id));
+        }
+
         return $this->response(
-            data: [
-                'complaints' => ComplaintIndexResource::collection($complaints),
-            ],
+            data: $responseData,
             message: 'List of Complaints'
         );
     }
@@ -240,7 +250,10 @@ class ComplaintController extends Controller
 
     public function view(Complaint $complaint): JsonResponse
     {
-        $comments = $complaint->comments()->with('media', 'user')->latest()->get();
+        $comments = $complaint->comments()
+            ->with('media', 'user')
+            ->latest()
+            ->get();
 
         return $this->response(
             data: [
