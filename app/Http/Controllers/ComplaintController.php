@@ -83,6 +83,7 @@ class ComplaintController extends Controller
             'employee_id' => ['sometimes', 'string', Rule::exists(User::class, 'uuid')->where('role', UserRole::EMPLOYEE)],
             'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
             'status' => ['sometimes', Rule::in(['ALL', 'PENDING', 'CLOSED'])],
+            'latest' => ['sometimes', 'string', Rule::in(['true', 'false'])],
         ]);
 
         /** @var string $employeeId */
@@ -121,7 +122,10 @@ class ComplaintController extends Controller
                     }
                 }
             )
-            ->latest()
+            ->when(
+                $request->has('latest') && $request->latest === 'true',
+                fn (Builder $query) => $query->latest()
+            )
             ->get();
 
         $responseData = [
