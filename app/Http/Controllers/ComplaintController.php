@@ -121,6 +121,7 @@ class ComplaintController extends Controller
                     }
                 }
             )
+            ->latest()
             ->get();
 
         $responseData = [
