@@ -8,6 +8,8 @@ use App\Enums\QueryStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\AddQueryCommentsRequest;
 use App\Http\Requests\StoreQueryRequest;
+use App\Http\Resources\CustomerResource;
+use App\Http\Resources\EmployeeResource;
 use App\Http\Resources\QueryCommentResource;
 use App\Http\Resources\QueryResource;
 use App\Models\Customer;
@@ -38,7 +40,7 @@ class QueryController extends Controller
 
         $customer = $request->user();
 
-        if (! $customer instanceof Customer) {
+        if (!$customer instanceof Customer) {
             throw new Exception('Auth Failed');
         }
 
@@ -60,7 +62,7 @@ class QueryController extends Controller
             }
         });
 
-        if (! $query) {
+        if (!$query) {
             return $this->response(
                 data: [],
                 message: 'New Query Failed',
@@ -94,7 +96,8 @@ class QueryController extends Controller
     public function index(Request $request): JsonResponse
     {
         $request->validate([
-            'customer_id' => ['sometimes', Rule::exists(Customer::class, 'uuid')],
+            'customer_id' => ['sometimes', 'string', Rule::exists(Customer::class, 'uuid')],
+            'status' => ['sometimes', Rule::in(['ALL', 'PENDING', 'CLOSED'])],
         ]);
 
         /** @var string $customerId */
@@ -102,21 +105,34 @@ class QueryController extends Controller
 
         $queries = Query::query()
             ->select(['id', 'uuid', 'product', 'created_at', 'customer_id', 'status'])
+            ->with('customer:id,uuid,name')
             ->when(
                 $request->has('customer_id'),
                 fn (Builder $query) => $query->where('customer_id', Customer::findIdByUuid($customerId))
             )
             ->when(
-                ! $request->has('customer_id'),
-                fn (Builder $query) => $query->with('customer:id,uuid,name')
+                $request->has('status'),
+                function (Builder $query) use ($request) {
+                    if ($request->status === 'CLOSED') {
+                        $query->where('status', QueryStatus::CLOSED);
+                    } elseif ($request->status === 'PENDING') {
+                        $query->where('status', QueryStatus::OPEN);
+                    }
+                }
             )
             ->latest()
             ->get();
 
+        $responseData = [
+            'queries' => QueryResource::collection($queries),
+        ];
+
+        if ($request->has('customer_id')) {
+            $responseData['customer'] = CustomerResource::make(Customer::findByUuid($request->customer_id));
+        }
+
         return $this->response(
-            data: [
-                'queries' => QueryResource::collection($queries),
-            ],
+            data: $responseData,
             message: 'List of Queries'
         );
     }
